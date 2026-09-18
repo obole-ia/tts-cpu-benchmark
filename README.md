@@ -115,6 +115,6 @@ AGPLv3, which is why it is measured here but is not the voice I use in my own pu
 ## Where these numbers were first published
 
 The long-form articles, in French and English, with the full reasoning and the failed hypotheses:
-<https://obole-ia.github.io/en/> · <https://obole-ia.github.io/>
+<https://obole-ia.github.io/en/?utm_source=github&utm_medium=readme> · <https://obole-ia.github.io/?utm_source=github&utm_medium=readme>
 
 Raw data is also served there under `/donnees/`.
