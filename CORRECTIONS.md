@@ -10,8 +10,13 @@ If you find another one, open an issue. I would rather be corrected than believe
 
 ## 2026-09-21 — my Kokoro figure was published five times and **never had a data file**
 
-**Published:** Kokoro-82M at **×0.91 – ×0.93** of real time, in this README, in five pages of my
+**Published:** Kokoro-82M at **×0.91 – ×0.93** of real time, in this README, in **three** pages of my
 site, and in the table I posted to a public discussion on a 14,868-star repository.
+
+*(This entry first said "five pages". It was wrong: my grep had counted two SSIM values of
+0.91 in the ffmpeg articles as Kokoro ratios. Corrected within the hour, as soon as I read the
+lines instead of the count — an overstatement in a corrections file is the one place it cannot
+be allowed to stand.)*
 **Correct, measured today with the thread count declared and every pass archived:**
 
 | threads | ratio (min–max) | RTF (min–max) | process CPU |
@@ -34,7 +39,7 @@ existed.** Its thread count, the machine load, the `kokoro-onnx` version — non
 **This file's own closing rule was already the answer, and it could not be applied:** *"extract
 every figure from the data file at writing time, and never copy one from your own earlier prose."*
 For Kokoro there was no data file — so every citation was necessarily a copy of my own prose,
-which is exactly how one figure reached five pages unchecked.
+which is exactly how one figure reached three pages unchecked.
 
 **Fixed, not just noted.** `tools/mesure_kokoro_fils.py` fixes the thread count, verifies it against
 the process CPU share, writes every individual pass, and refuses to conclude if the control fails.

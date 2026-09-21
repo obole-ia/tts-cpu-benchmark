@@ -117,6 +117,25 @@ what I asked for. The script requires under 110 % of a CPU at 1 thread and over 
 derived from `getrusage` over wall-clock, and refuses to publish a comparison if either bound fails.
 It held on all 8 arms.
 
+### Kokoro: the same experiment, and why threads cannot help its phonemize step
+
+`kokoro_onnx` 0.6.1 serialises phonemization with `_espeak_lock = threading.Lock()` in
+`tokenizer.py`, taken inside `phonemize()`. That lock is declared at **module** scope, so it is
+shared by every `Kokoro` instance in one process: **thread-level parallelism cannot parallelise that
+step at all.** Separate processes each get their own espeak, so that is what scales.
+
+| | aggregate |
+|---|---|
+| 1 stream, 1 thread | ×0.518 |
+| 2 streams, 1 thread each | ×0.480 + ×0.476 = **×0.956** |
+| 1 process, 2 threads | ×0.869 |
+
+**+10 %** for two single-threaded processes, with the
+second stream costing the first 7–8 %.
+Smaller than Piper's +17 %, and **I do not know why** — the 310 MiB model against 60 MiB per Piper
+voice makes memory bandwidth plausible, but I have not tested it. Kokoro stays below real time at
+every thread count on this hardware.
+
 ### Two streams at one thread beat one stream at two threads
 
 Two processes, one thread each, started on a barrier before every pass so they genuinely overlap.
@@ -146,6 +165,7 @@ python -m venv venv && ./venv/bin/pip install piper-tts onnxruntime
 ./venv/bin/python tools/mesure_piper_fils.py 6        # 1/2/3/4 threads, interleaved
 ./venv/bin/python tools/mesure_piper_parallele.py 6   # 1 vs 2 concurrent single-thread streams
 ./venv/bin/python tools/mesure_kokoro_fils.py 3      # Kokoro at 1/2/4 threads, interleaved
+./venv/bin/python tools/mesure_kokoro_parallele.py 3 # Kokoro: 1 vs 2 concurrent single-thread processes
 ```
 
 The last two exit non-zero and say so in plain text if their CPU-share control fails: a thread
