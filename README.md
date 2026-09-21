@@ -45,13 +45,19 @@ own estimate.
 
 ## Results
 
-### Engine speed, same 505-character French text, 12 runs each
+### Engine speed, same 505-character French text, 12 runs each — **at 2 threads**
 
 | Engine / voice | Ratio (min–max) | Median | Runs |
 |---|---|---|---|
 | Piper `fr_FR-siwis-medium` | **×8.11 – ×8.47** | ×8.32 | 12 |
 | Piper `fr_FR-tom-medium` | ×4.43 – ×4.58 | — | 12 |
 | Kokoro-82M | **×0.91 – ×0.93** | — | 12 |
+
+> **Read the heading.** These runs did not set a thread count, so onnxruntime chose one, and on a
+> 2-core machine it chose 2. I published them for a week without that condition; a collaborator of
+> k2-fsa/sherpa-onnx pointed it out on 2026-09-21. **At one thread the same voices give ×5.07 and
+> ×2.70.** The next section is the corrected table, and
+> [CORRECTIONS.md](CORRECTIONS.md) has the full account.
 
 Twelve runs, not six: a preliminary series contained one slow run, and I did not want to publish a
 range taken from the only series that flattered the result.
@@ -70,6 +76,59 @@ into the other, so the two engines are guaranteed to receive the same input to t
 audio duration across the two granularities differed by 0.04 s (51.97 s against 52.01 s), so the
 comparison is on the same amount of speech.
 
+### Thread count, 6 runs per arm, passes interleaved between arms
+
+`num_threads` here sets **both** `intra_op_num_threads` and `inter_op_num_threads`, which is what
+sherpa-onnx's own `num_threads` does (`sherpa-onnx/csrc/session.cc`, `SetIntraOpNumThreads` and
+`SetInterOpNumThreads` on the same value). RTF is compute ÷ audio, the sherpa convention, so
+**lower is faster**; the × column is this repository's convention, audio ÷ compute.
+
+| Voice | Threads | RTF (median) | RTF min–max | Ratio | Process CPU |
+|---|---|---|---|---|---|
+| `fr_FR-siwis-medium` | 1 | 0.1973 | 0.1963–0.2000 | ×5.07 | 100 % |
+| | **2** | **0.1214** | 0.1198–0.1239 | **×8.24** | 190 % |
+| | 3 | 0.1811 | 0.1791–0.1824 | ×5.52 | 193 % |
+| | 4 | 0.1944 | 0.1894–0.1986 | ×5.14 | 193 % |
+| `fr_FR-tom-medium` | 1 | 0.3698 | 0.3694–0.3724 | ×2.70 | 100 % |
+| | **2** | **0.2209** | 0.2185–0.2249 | **×4.53** | 185 % |
+| | 3 | 0.3051 | 0.3045–0.3111 | ×3.28 | 189 % |
+| | 4 | 0.3013 | 0.3001–0.3050 | ×3.32 | 188 % |
+
+**Two cores, so two threads — and past that it gets worse, not flat.** 2→3 threads costs 33 %
+(`siwis`) and 28 % (`tom`) while the CPU share stays pinned near 190 %: the extra threads spin
+rather than work. On the 4-core Raspberry Pi 4 of
+[k2-fsa's RTF table](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/rtf.html), 1→4
+threads still gains 2.17× to 2.75×, so this is a statement about **2 cores**, not about threads.
+
+**The 1→2 speedup reproduces across machines.** Across the 16 models in that table it is 1.602 to
+1.757 (median 1.713). Here it is **1.625** and **1.674** — inside their range, on a different ARM
+chip, a different text and different voices. Absolute RTFs are not comparable between the two
+machines; a ratio internal to each machine is.
+
+**The control is the CPU share, not the option.** Reading `intra_op_num_threads` back only reports
+what I asked for. The script requires under 110 % of a CPU at 1 thread and over 150 % above it,
+derived from `getrusage` over wall-clock, and refuses to publish a comparison if either bound fails.
+It held on all 8 arms.
+
+### Two streams at one thread beat one stream at two threads
+
+Two processes, one thread each, started on a barrier before every pass so they genuinely overlap.
+
+| | `siwis` | `tom` |
+|---|---|---|
+| 1 stream, 1 thread | ×5.09 | ×2.71 |
+| 2 streams, 1 thread each | ×4.87 + ×4.80 = **×9.67** | ×2.61 + ×2.58 = **×5.19** |
+| 1 process, 2 threads | ×8.24 | ×4.53 |
+
+**Aggregate throughput is 17 % and 15 % higher with two single-threaded workers**, and the second
+concurrent stream costs the first only **3.8 % to 5.7 %**. If you are sizing a CPU TTS worker on a
+2-vCPU box: one thread per worker, one worker per core.
+
+This also corrects a number in this repository. I had published "contention costs 45–47 %"
+(×8.32 → ×4.39). Most of that was **oversubscription**, not contention — and the archive of that
+old series does not record what the competing load was, which is a defect of my record and not of
+the machine.
+
 ## Reproduce it
 
 ```
@@ -77,7 +136,13 @@ python -m venv venv && ./venv/bin/pip install piper-tts onnxruntime
 ./venv/bin/python tools/mesure_piper.py      # Piper, both voices
 ./venv/bin/python tools/mesure_tts.py        # Kokoro-82M
 ./venv/bin/python tools/mesure_longueur.py   # per-call cost, 2 engines x 2 granularities
+./venv/bin/python tools/mesure_piper_fils.py 6        # 1/2/3/4 threads, interleaved
+./venv/bin/python tools/mesure_piper_parallele.py 6   # 1 vs 2 concurrent single-thread streams
 ```
+
+The last two exit non-zero and say so in plain text if their CPU-share control fails: a thread
+setting that did not take makes the comparison meaningless, and a benchmark that cannot notice that
+is not measuring what its heading claims.
 
 Each script writes a JSON file with every individual run, the machine's identity, and the exact
 text used. The `data/` directory holds the runs that produced the numbers above — so you can check
@@ -93,8 +158,9 @@ right** — open an issue and I will correct the README, publicly and dated.
 
 ## Corrections
 
-**Five corrections so far — four wrong printed numbers, plus one contradiction between three of my
-own articles.** All are listed in [CORRECTIONS.md](CORRECTIONS.md) with dates, what the number
+**Six corrections so far — five wrong or under-labelled printed numbers, plus one contradiction
+between three of my own articles.** The sixth is the first one found by someone else: a collaborator
+of k2-fsa/sherpa-onnx read a figure here and told me what condition it was missing. All are listed in [CORRECTIONS.md](CORRECTIONS.md) with dates, what the number
 should have been, and what caused it — including the one where I called `sorted(v)[len(v)//2]` a
 median, which is wrong on an even count and shifted two published ratios in the second decimal.
 

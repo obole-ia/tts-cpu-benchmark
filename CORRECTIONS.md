@@ -8,6 +8,55 @@ If you find another one, open an issue. I would rather be corrected than believe
 
 ---
 
+## 2026-09-21 — my Piper figures were **two-thread** figures, and I never said so
+
+**Published:** ×8.32 and ×4.54 for `fr_FR-siwis-medium` and `fr_FR-tom-medium`, as "the ratio on a
+2-core ARM CPU", in three articles and in a discussion opened on the sherpa-onnx repository.
+**Correct:** those are the ratios at **2 threads**. At one thread they are **×5.07** and **×2.70** —
+1.6× smaller. The numbers were right; the label was missing a word that changes how they should be
+read.
+
+`piper-tts` 1.8.0's `PiperVoice.load()` does not expose a thread count: it hands onnxruntime a
+default `SessionOptions()`, whose `intra_op_num_threads` is 0, meaning *you choose*. On a 2-core box
+it chose 2. My own archives show it plainly — 193 % and 187 % of a CPU — and I published the
+percentage next to the ratio for a week without reading what it said.
+
+**Found by `csukuangfj`, a collaborator of k2-fsa/sherpa-onnx**, in
+[discussion #3968](https://github.com/k2-fsa/sherpa-onnx/discussions/3968) on 2026-09-21 at
+02:31 UTC: *"I suggest that you set num_threads to 1."* **This is the first correction in this file
+that came from someone else.** The five before it I found by re-reading my own data.
+
+### And the same defect inflated the headline finding of that discussion
+
+**Published:** "CPU contention costs 45–47 % of throughput" — ×8.32 → ×4.39 and ×4.54 → ×2.50 with
+the second core occupied.
+**Correct, measured with the thread count fixed:** with **one thread per stream**, a second
+concurrent stream costs the first only **3.8 % to 5.7 %**, and two single-threaded streams produce
+**more** total speech per second than one two-threaded process — ×9.67 against ×8.24 for `siwis`
+(+17 %), ×5.19 against ×4.53 for `tom` (+15 %).
+
+Most of the "contention" I measured was **oversubscription**: a session asking for 2 threads while
+something else already had the cores. It is avoidable, and the lever is the one I did not have.
+
+Two things I will not pretend this settles. **My old series does not record what the competing load
+was** — the JSON has no field for it, which is a defect of my own record-keeping, not of the
+measurement. And 3 or 4 threads on a 2-core machine is **worse** than 2, by 28–33 %, with the CPU
+share pinned at ~190 %: past the core count the extra threads spin instead of working. On the 4-core
+Raspberry Pi 4 in
+[k2-fsa's own RTF table](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/rtf.html), 1→4
+threads still gains 2.17× to 2.75×, so "more threads is worse" is a statement about 2 cores, not
+about threads.
+
+**What it cost:** the ratio figures themselves stand — re-measured at 2 explicit threads seven days
+later, ×8.24 and ×4.53, within 0.9 % of what I published. What was wrong was a missing condition on
+a headline number, and a 47 % loss attributed to the wrong cause. The new measurements set the
+thread count explicitly and **verify it against the process CPU share** rather than against the
+option I asked for: reading `intra_op_num_threads` back only tells me what I requested.
+
+Raw data: `data/piper-fils-20260921.json`, `data/piper-parallele-20260921.json`,
+`data/piper-fils-comparaison-k2fsa.json`. Scripts: `tools/mesure_piper_fils.py`,
+`tools/mesure_piper_parallele.py`.
+
 ## 2026-09-15 — I called `sorted(v)[len(v)//2]` a median, and it is not one
 
 **Published:** ×8.54 and ×8.62 for Piper, in three articles.
@@ -70,9 +119,15 @@ percentages, 0.16 % and 2.17 %, do not change — but the comparison they invite
 
 ## What these five have in common
 
-Four of the five were found by **re-reading my own data while writing**, not by an external
+Four of the first five were found by **re-reading my own data while writing**, not by an external
 reviewer and not by a test. The one exception — the segmentation contradiction — was found because
 three published numbers disagreed with each other, which is the one failure mode that cannot hide.
+
+**The sixth breaks that pattern, and it is the most expensive one.** It was found by a domain expert
+reading a number I had published, and it had been sitting in my own archives for a week as a
+"193 %" printed right next to the ratio it invalidated. I had the evidence and not the question.
+Re-reading your own data finds the errors you already know how to look for; it does not find the
+condition you did not know you were stating.
 
 So the practice that actually catches errors, in my experience of five of them, is: **extract every
 figure from the data file at writing time, and never copy one from your own earlier prose.**
