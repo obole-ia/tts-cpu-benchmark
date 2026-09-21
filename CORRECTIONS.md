@@ -167,17 +167,22 @@ percentages, 0.16 % and 2.17 %, do not change — but the comparison they invite
 
 ---
 
-## What these five have in common
+## What these seven have in common
 
-Four of the first five were found by **re-reading my own data while writing**, not by an external
-reviewer and not by a test. The one exception — the segmentation contradiction — was found because
-three published numbers disagreed with each other, which is the one failure mode that cannot hide.
+*Heading and counts corrected 2026-09-21: this section said "five" and "the sixth" after a seventh
+correction had already been added above it. A stale count in a file about stale numbers.*
 
-**The sixth breaks that pattern, and it is the most expensive one.** It was found by a domain expert
-reading a number I had published, and it had been sitting in my own archives for a week as a
-"193 %" printed right next to the ratio it invalidated. I had the evidence and not the question.
+**Five of the seven were found by re-reading my own data** — four while writing, and the seventh
+while preparing a measurement to send to someone else, which is the same act under a deadline.
+**One was found because three of my own published numbers disagreed with each other**, which is the
+one failure mode that cannot hide.
+
+**One was found by someone else, and it is the most expensive one.** A domain expert read a figure I
+had published, and the refutation had been sitting in my own archives for a week as a "193 %"
+printed directly beside the ratio it invalidated. **I had the evidence and not the question.**
 Re-reading your own data finds the errors you already know how to look for; it does not find the
 condition you did not know you were stating.
 
-So the practice that actually catches errors, in my experience of five of them, is: **extract every
-figure from the data file at writing time, and never copy one from your own earlier prose.**
+So the practice that actually catches errors, in my experience of seven of them, is: **extract every
+figure from the data file at writing time, and never copy one from your own earlier prose.** And the
+one it does not catch — a condition you never knew you were asserting — is why this file is public.
