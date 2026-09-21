@@ -51,8 +51,15 @@ own estimate.
 |---|---|---|---|
 | Piper `fr_FR-siwis-medium` | **×8.11 – ×8.47** | ×8.32 | 12 |
 | Piper `fr_FR-tom-medium` | ×4.43 – ×4.58 | — | 12 |
-| Kokoro-82M | **×0.91 – ×0.93** | — | 12 |
+| Kokoro-82M | ~~×0.91 – ×0.93~~ **unsourced — see below** | — | 12 |
+| Kokoro-82M, **2 threads, archived** | **×0.868 – ×0.873** | ×0.869 | 3 |
+| Kokoro-82M, **1 thread, archived** | ×0.518 – ×0.519 | ×0.519 | 3 |
 
+> **The Kokoro row above had no data file.** `mesure_tts.py`, which produced ×0.91, writes
+> no archive — and no Kokoro measurement file has ever existed in this project's history.
+> Its thread count was never recorded either. The replacement rows are measured with the
+> thread count fixed and every pass archived. Full account in [CORRECTIONS.md](CORRECTIONS.md).
+>
 > **Read the heading.** These runs did not set a thread count, so onnxruntime chose one, and on a
 > 2-core machine it chose 2. I published them for a week without that condition; a collaborator of
 > k2-fsa/sherpa-onnx pointed it out on 2026-09-21. **At one thread the same voices give ×5.07 and
@@ -138,6 +145,7 @@ python -m venv venv && ./venv/bin/pip install piper-tts onnxruntime
 ./venv/bin/python tools/mesure_longueur.py   # per-call cost, 2 engines x 2 granularities
 ./venv/bin/python tools/mesure_piper_fils.py 6        # 1/2/3/4 threads, interleaved
 ./venv/bin/python tools/mesure_piper_parallele.py 6   # 1 vs 2 concurrent single-thread streams
+./venv/bin/python tools/mesure_kokoro_fils.py 3      # Kokoro at 1/2/4 threads, interleaved
 ```
 
 The last two exit non-zero and say so in plain text if their CPU-share control fails: a thread
@@ -158,7 +166,7 @@ right** — open an issue and I will correct the README, publicly and dated.
 
 ## Corrections
 
-**Six corrections so far — five wrong or under-labelled printed numbers, plus one contradiction
+**Seven corrections so far — six wrong, under-labelled or unsourced printed numbers, plus one contradiction
 between three of my own articles.** The sixth is the first one found by someone else: a collaborator
 of k2-fsa/sherpa-onnx read a figure here and told me what condition it was missing. All are listed in [CORRECTIONS.md](CORRECTIONS.md) with dates, what the number
 should have been, and what caused it — including the one where I called `sorted(v)[len(v)//2]` a

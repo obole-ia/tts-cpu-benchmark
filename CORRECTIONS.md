@@ -8,6 +8,51 @@ If you find another one, open an issue. I would rather be corrected than believe
 
 ---
 
+## 2026-09-21 — my Kokoro figure was published five times and **never had a data file**
+
+**Published:** Kokoro-82M at **×0.91 – ×0.93** of real time, in this README, in five pages of my
+site, and in the table I posted to a public discussion on a 14,868-star repository.
+**Correct, measured today with the thread count declared and every pass archived:**
+
+| threads | ratio (min–max) | RTF (min–max) | process CPU |
+|---|---|---|---|
+| 1 | ×0.518 – ×0.519 | 1.926 – 1.930 | 100 % |
+| **2** | **×0.868 – ×0.873** | **1.145 – 1.152** | 186 % |
+| 4 | ×0.685 – ×0.699 | 1.431 – 1.460 | 188 % |
+
+**The published ×0.91–×0.93 does not contain today's two-thread figure.** But I am not reporting
+that as a failure to reproduce, because **the two are not comparable and cannot be made so**:
+`tools/mesure_tts.py`, which produced the old number, **writes no archive at all**. It prints and
+forgets. I checked the whole git history of this project: **no Kokoro measurement file has ever
+existed.** Its thread count, the machine load, the `kokoro-onnx` version — none was recorded.
+
+> **The old number is not wrong. It is unsourced**, which is worse, because a wrong number can be
+> corrected against its data and an unsourced one cannot. Every Piper figure in this repository has
+> a JSON file behind it. The Kokoro figure never did, and I did not notice for seven days while
+> citing it in five places.
+
+**This file's own closing rule was already the answer, and it could not be applied:** *"extract
+every figure from the data file at writing time, and never copy one from your own earlier prose."*
+For Kokoro there was no data file — so every citation was necessarily a copy of my own prose,
+which is exactly how one figure reached five pages unchecked.
+
+**Fixed, not just noted.** `tools/mesure_kokoro_fils.py` fixes the thread count, verifies it against
+the process CPU share, writes every individual pass, and refuses to conclude if the control fails.
+`tools/mesure_tts.py` now prints a warning that it archives nothing and must not be published from
+— the warning is in the function, not in a rules file, because the function is where I tripped.
+
+**And a result worth more than the correction.** The 1→2 thread speedup here is
+**1.674** — landing inside the 1.602–1.757 range of the
+16 models in [k2-fsa's RTF table](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/rtf.html),
+and beside the 1.625 and 1.674 measured on the two Piper voices. **Three engines' worth of voices,
+two machines, one scaling law.** Note also that Kokoro is below real time at *every* thread count
+on this hardware: at one thread it needs **1.93 seconds of compute per second
+of speech**.
+
+Raw data: `data/kokoro-fils-20260921.json` (n=3 passes per arm — Kokoro is 5–9× slower than Piper,
+so equal protocol would have run past twenty minutes; the bounds are correspondingly wider and that
+is stated in the archive).
+
 ## 2026-09-21 — my Piper figures were **two-thread** figures, and I never said so
 
 **Published:** ×8.32 and ×4.54 for `fr_FR-siwis-medium` and `fr_FR-tom-medium`, as "the ratio on a
