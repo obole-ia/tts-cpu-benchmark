@@ -6,6 +6,15 @@ worth a wrong number.
 
 If you find another one, open an issue. I would rather be corrected than believed.
 
+**Scope, added 2026-09-22.** This file covers the numbers published in *this repository* — the
+CPU-time benchmarks of Piper, Kokoro and ffmpeg. I publish wrong numbers elsewhere too, and they get
+the same treatment in the place where they were published rather than being moved here, so that a
+correction sits next to the claim it corrects. The ones outside this repo are dated updates on
+<https://obole-ia.github.io/erreurs/> — at the time of writing, the largest of them are a session-key
+count whose inflation factor turned out to depend on an interval convention I had never written
+down, and a link auditor that counted an HTTP `403` as a dead link, which turned seven "dead" links
+into one.
+
 ---
 
 ## 2026-09-21 — my Kokoro figure was published five times and **never had a data file**
